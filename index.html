@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+     <!-- ===== THÊM 2 DÒNG NÀY ===== -->
+    <link rel="manifest" href="/socan-tom/manifest.json">
+    <link rel="apple-touch-icon" href="/socan-tom/icon-192.png">
+    <!-- ===== KẾT THÚC ===== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🦐 Sổ cân tôm</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sổ cân tôm">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A6%90%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A6%90%3C/text%3E%3C/svg%3E">
+    <style>
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            margin: 0; 
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            background: #f1f5f9;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            height: 100vh;
+            max-height: 100dvh;
+            margin: 0 auto;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 6px 6px env(safe-area-inset-bottom) 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .flex-shrink-0 { flex-shrink: 0; }
+        .flex-grow-1 { flex: 1 1 auto; min-height: 0; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px;
+        }
+        .header .title { font-size: 18px; font-weight: 700; color: #1e293b; }
+        .header .datetime { font-size: 12px; color: #64748b; }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .menu-btn:active { background: #e2e8f0; }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s;
+        }
+        .menu-overlay.show { display: flex; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .menu-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 420px;
+            width: 92%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.25s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .menu-header h2 { font-size: 18px; color: #1e293b; }
+        .menu-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0 8px;
+        }
+        .menu-header .close-btn:active { color: #475569; }
+
+        .menu-search {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+            width: 100%;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .menu-search:focus { border-color: #2563eb; }
+
+        .menu-list {
+            overflow-y: auto;
+            flex: 1;
+            max-height: 50vh;
+        }
+
+        .ao-group { margin-bottom: 14px; }
+        .ao-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 10px;
+            background: #eef2ff;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #3730a3;
+            gap: 6px;
+        }
+        .ao-group-header .ao-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .ao-group-total { font-size: 12px; font-weight: 700; color: #2563eb; white-space: nowrap; }
+        .ao-group .menu-item { margin-left: 6px; padding: 8px 12px; }
+
+        .ao-selected-sum {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #065f46;
+        }
+        .ao-selected-sum button {
+            background: #059669;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .ao-selected-sum button:active { opacity: 0.85; }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+        }
+        .menu-item:active { background: #f1f5f9; }
+        .menu-item.active { background: #dbeafe; border-color: #2563eb; }
+        .menu-item-check {
+            width: 20px;
+            height: 20px;
+            accent-color: #2563eb;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .menu-item .info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .menu-item .info .name { font-weight: 700; color: #1e293b; font-size: 15px; }
+        .menu-item .info .detail { font-size: 12px; color: #64748b; }
+        .menu-item .actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .menu-item .actions button {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .menu-item .actions .del:active { background: #fef2f2; color: #dc2626; }
+        .menu-item .actions .load:active { background: #dbeafe; color: #2563eb; }
+
+        .menu-empty {
+            text-align: center;
+            padding: 30px 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .menu-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .menu-footer .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: white;
+        }
+        .menu-footer .btn:active { transform: scale(0.95); }
+        .menu-footer .btn-danger { background: #ef4444; }
+        .menu-footer .btn-primary { background: #2563eb; }
+        .menu-footer .btn-secondary { background: #64748b; }
+
+        .toggle-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            margin: 3px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        .toggle-section.collapsed { max-height: 38px !important; }
+        .toggle-section.expanded { max-height: 500px !important; }
+
+        .toggle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            background: #f1f5f9;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .toggle-header .label { font-size: 14px; font-weight: 600; color: #475569; }
+        .toggle-header .arrow { font-size: 16px; transition: transform 0.3s ease; color: #64748b; }
+        .toggle-section.collapsed .toggle-header .arrow { transform: rotate(-90deg); }
+        .toggle-body { padding: 10px 12px 12px; }
+
+        .info-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .info-row .field { flex: 1; min-width: 40px; }
+        .info-row .field label { 
+            font-size: 12px; 
+            color: #64748b; 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 3px; 
+        }
+        .info-row .field input, .info-row .field select {
+            width: 100%; 
+            padding: 8px 10px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px;
+            font-size: 15px; 
+            background: #ffffff; 
+            outline: none; 
+            color: #1e293b;
+        }
+        .info-row .field input:focus, .info-row .field select:focus {
+            border-color: #2563eb;
+        }
+
+        .summary {
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 6px;
+        }
+        .summary .stat {
+            background: #f1f5f9; 
+            border-radius: 8px; 
+            padding: 6px 2px; 
+            text-align: center;
+        }
+        .summary .stat .label { 
+            font-size: 11px; 
+            color: #64748b; 
+            display: block; 
+            font-weight: 500; 
+        }
+        .summary .stat .value { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #1e293b; 
+        }
+        .summary .stat.total .value { 
+            color: #ef4444; 
+            font-size: 20px; 
+        }
+        .summary .stat.type .value { 
+            color: #2563eb; 
+        }
+
+        .cumulative-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .cumulative-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .cumulative-toggle label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+        }
+        .cumulative-toggle .badge {
+            font-size: 10px;
+            background: #2563eb;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        /* ===== THANH ĐIỀU HƯỚNG TAB (dễ bấm trên điện thoại) ===== */
+        .tab-nav-bar {
+            display: flex;
+            align-items: stretch;
+            gap: 4px;
+            flex-shrink: 0;
+            padding: 3px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .tab-nav-arrow {
+            flex-shrink: 0;
+            width: 34px;
+            border: none;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #1e293b;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .tab-nav-arrow:active { background: #cbd5e1; transform: scale(0.95); }
+        .tab-nav-arrow:disabled { opacity: 0.35; cursor: default; }
+        .tab-nav-arrow:disabled:active { transform: none; }
+
+        .tab-scroll {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            flex: 1;
+            min-width: 0;
+            padding: 2px 0;
+            scrollbar-width: none;
+        }
+        .tab-scroll::-webkit-scrollbar { display: none; }
+        .tab-scroll .tab {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            color: #475569;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            transition: 0.15s;
+            scroll-snap-align: start;
+            min-width: 52px;
+            text-align: center;
+        }
+        .tab-scroll .tab:active { transform: scale(0.95); }
+        .tab-scroll .tab.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .tab-picker-btn {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            width: 44px;
+            border: none;
+            border-radius: 6px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .tab-picker-btn span { font-size: 9px; font-weight: 700; }
+        .tab-picker-btn:active { background: #bfdbfe; transform: scale(0.95); }
+
+        .tab-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .tab-picker-grid button {
+            padding: 14px 4px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .tab-picker-grid button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        .tab-picker-grid button:active { transform: scale(0.95); }
+
+        /* ===== THANH CÀI ĐẶT TAB (thêm/bớt tab, cột/tab, tự động) ===== */
+        .tab-settings-bar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            padding: 3px 0;
+            overflow-x: auto;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .tab-settings-bar .tab-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #e2e8f0;
+            color: #1e293b;
+            flex-shrink: 0;
+            min-width: 34px;
+        }
+        .tab-settings-bar .tab-btn:active { transform: scale(0.95); background: #cbd5e1; }
+        .tab-settings-bar .tab-btn.primary { background: #2563eb; color: white; }
+        .tab-settings-bar .tab-btn.danger { background: #ef4444; color: white; }
+        .tab-settings-bar .spacer { flex: 1; }
+
+        .tab-setting {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            background: #e2e8f0;
+            border-radius: 6px;
+        }
+        .tab-setting label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .tab-setting input {
+            width: 40px;
+            padding: 3px 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+            background: white;
+        }
+        .tab-setting input:focus {
+            border-color: #2563eb;
+            outline: none;
+        }
+
+        .auto-decimal-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .auto-decimal-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #2563eb;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .auto-decimal-toggle label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .auto-decimal-toggle .badge {
+            font-size: 9px;
+            background: #64748b;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .auto-decimal-toggle .badge.on { background: #22c55e; }
+        .auto-decimal-toggle .badge.off { background: #64748b; }
+
+        .decimal-places-setting {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-left: 2px;
+        }
+        .decimal-places-setting input {
+            width: 26px;
+            padding: 2px 1px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 11px;
+            text-align: center;
+            background: white;
+        }
+        .decimal-places-setting input:focus { border-color: #2563eb; outline: none; }
+        .decimal-places-setting span { font-size: 10px; color: #64748b; font-weight: 600; white-space: nowrap; }
+
+        /* ===== THANH TỔNG (LUÔN HIỂN THỊ) ===== */
+        .summary-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+            margin: 3px 0;
+            transition: background 0.15s;
+        }
+        .summary-bar:active { background: #e2e8f0; }
+        .summary-bar-item {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 0;
+        }
+        .summary-bar-item .label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .summary-bar-item .value { font-size: 17px; font-weight: 800; color: #1e293b; }
+        .summary-bar-item.total .value { color: #ef4444; font-size: 19px; }
+        .summary-bar-item.type .value { color: #2563eb; }
+        .summary-bar-divider { width: 1px; align-self: stretch; background: #cbd5e1; flex-shrink: 0; }
+        .summary-bar-arrow {
+            font-size: 14px;
+            color: #64748b;
+            transition: transform 0.25s ease;
+            flex-shrink: 0;
+            padding: 0 2px;
+        }
+        .summary-bar-arrow.open { transform: rotate(180deg); }
+
+        /* ===== PANEL CHI TIẾT (AO / LOẠI / GHI CHÚ) - THU GỌN ĐƯỢC ===== */
+        .detail-panel {
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .detail-panel.expanded { max-height: 220px; margin: 3px 0; padding: 10px 12px 12px; opacity: 1; }
+        .detail-panel.collapsed { max-height: 0 !important; margin: 0 !important; padding: 0 12px !important; border-width: 0; opacity: 0; }
+
+        .table-wrapper {
+            flex: 1 1 auto;
+            min-height: 80px;
+            overflow-y: auto;
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            margin: 2px 0;
+        }
+        .data-table {
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 14px; 
+            min-width: 200px;
+        }
+        .data-table th {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 2px solid #94a3b8;
+            border-right: 1px solid #94a3b8;
+        }
+        .data-table th:last-child { border-right: none; }
+        .data-table td {
+            padding: 6px 2px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #d1d5db;
+        }
+        .data-table td:last-child { border-right: none; }
+
+        .data-table td input {
+            width: 100%;
+            border: none;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            padding: 8px 0;
+            background: transparent;
+            outline: none;
+        }
+        .data-table td.active-cell { background: #dbeafe; border-radius: 4px; }
+        .data-table td.active-cell input { color: #2563eb; }
+        .data-table td.done-cell { background: #fafafa; }
+
+        .data-table .total-row td {
+            background: #f1f5f9;
+            font-weight: 800;
+            color: #1e293b;
+            font-size: 16px;
+            border-top: 2px solid #475569;
+            border-bottom: 1px solid #94a3b8;
+            padding: 8px 3px;
+            border-right: 1px solid #cbd5e1;
+        }
+        .data-table .total-row td:last-child { border-right: none; }
+        .data-table .total-row td input {
+            font-weight: 800;
+            color: #dc2626;
+            font-size: 26px;
+            padding: 8px 0;
+        }
+
+        .data-table .row-number {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+            background: #f8fafc;
+            border-right: 1px solid #d1d5db !important;
+        }
+
+        .toggle-numpad-btn {
+            background: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #64748b;
+            font-weight: 700;
+            transition: 0.2s;
+            background: #f8fafc;
+            flex-shrink: 0;
+        }
+        .toggle-numpad-btn:active { background: #e2e8f0; transform: scale(0.95); }
+        .toggle-numpad-btn.hide { background: #dbeafe; border-color: #2563eb; color: #2563eb; }
+
+        .btn-row {
+            display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap;
+        }
+        .btn {
+            padding: 7px 6px; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;
+            flex: 1; min-width: 28px; text-align: center; transition: 0.1s; color: white;
+        }
+        .btn:active { transform: scale(0.95); opacity: 0.9; }
+        .btn-success { background: #22c55e; }
+        .btn-primary { background: #2563eb; }
+        .btn-danger { background: #ef4444; }
+        .btn-info { background: #14b8a6; }
+        .btn-secondary { background: #64748b; }
+        .btn-warning { background: #f59e0b; color: #1e293b; }
+
+        .toolbar-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 2px 0;
+            flex-wrap: wrap;
+        }
+        .toolbar-row .spacer { flex: 1; }
+
+        .numpad-wrapper {
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin 0.3s ease;
+            max-height: 220px;
+            flex-shrink: 0;
+        }
+        .numpad-wrapper.collapsed { max-height: 0 !important; margin: 0 !important; }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .numpad .key {
+            padding: 14px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #ffffff;
+            color: #1e293b;
+            touch-action: manipulation;
+            box-shadow: 0 3px 6px -1px rgba(0,0,0,0.1);
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.08s;
+        }
+        .numpad .key:active { transform: scale(0.93); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .numpad .key.delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .numpad .key.done { background: #1e3a8a; color: white; border-color: #1e3a8a; font-size: 22px; }
+        .numpad .key.span2 { grid-column: span 2; }
+        .numpad .key.operator { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+        .numpad .key.num { background: #ffffff; font-size: 30px; }
+
+        .save-option-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s;
+        }
+        .save-option-overlay.show { display: flex; }
+
+        .save-option-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 24px 20px 20px;
+            max-width: 380px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.25s ease;
+        }
+        .save-option-panel h3 {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .save-option-panel .sub {
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .save-option-panel .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .save-option-panel .btn-group .btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: white;
+        }
+        .save-option-panel .btn-group .btn:active { transform: scale(0.95); }
+        .save-option-panel .btn-group .btn-overwrite { background: #ef4444; }
+        .save-option-panel .btn-group .btn-new { background: #2563eb; }
+        .save-option-panel .btn-group .btn-cancel { 
+            background: #e2e8f0; 
+            color: #475569;
+            flex: 0.6;
+        }
+
+        @media (max-width: 450px) {
+            .data-table td input { font-size: 20px; padding: 6px 0; }
+            .data-table .total-row td input { font-size: 22px; }
+            .numpad .key { min-height: 48px; font-size: 24px; padding: 10px 0; }
+            .numpad .key.num { font-size: 26px; }
+            .tab-scroll .tab { font-size: 12px; padding: 6px 12px; min-width: 44px; }
+            .tab-nav-arrow { width: 28px; font-size: 16px; }
+            .tab-picker-btn { width: 36px; font-size: 13px; }
+            .tab-settings-bar .tab-btn { font-size: 14px; padding: 3px 6px; min-width: 28px; }
+            .tab-setting input { width: 34px; font-size: 12px; }
+            .tab-setting label { font-size: 10px; }
+            .summary .stat .value { font-size: 16px; }
+            .summary .stat.total .value { font-size: 18px; }
+            .cumulative-toggle label { font-size: 11px; }
+            .save-option-panel .btn-group .btn { font-size: 13px; padding: 10px 0; }
+            .auto-decimal-toggle label { font-size: 10px; }
+            .summary-bar-item .value { font-size: 15px; }
+            .summary-bar-item.total .value { font-size: 17px; }
+            .summary-bar-item .label { font-size: 10px; }
+        }
+        @media (max-width: 380px) {
+            .data-table td input { font-size: 18px; padding: 4px 0; }
+            .data-table .total-row td input { font-size: 20px; }
+            .numpad .key { min-height: 42px; font-size: 20px; padding: 8px 0; }
+            .numpad .key.num { font-size: 22px; }
+            .btn { font-size: 10px; padding: 5px 3px; }
+            .tab-scroll .tab { font-size: 11px; padding: 5px 10px; min-width: 40px; }
+            .tab-nav-arrow { width: 26px; font-size: 14px; }
+            .tab-picker-btn { width: 32px; font-size: 12px; }
+            .tab-settings-bar .tab-btn { font-size: 12px; padding: 2px 5px; min-width: 24px; }
+            .tab-setting input { width: 30px; font-size: 11px; }
+            .summary .stat .value { font-size: 14px; }
+            .summary .stat.total .value { font-size: 16px; }
+            .cumulative-toggle label { font-size: 10px; }
+            .save-option-panel .btn-group .btn { font-size: 12px; padding: 8px 0; }
+            .auto-decimal-toggle label { font-size: 9px; }
+            .summary-bar-item .value { font-size: 13px; }
+            .summary-bar-item.total .value { font-size: 15px; }
+            .summary-bar-item .label { font-size: 9px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HEADER -->
+    <div class="header flex-shrink-0">
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span class="title">🦐 Sổ cân</span>
+            <button class="menu-btn" onclick="toggleMenu()">📋</button>
+            <button class="menu-btn" onclick="showPinTip()" title="Ghim ra màn hình chính">📌</button>
+        </div>
+        <span class="datetime" id="currentTime"></span>
+    </div>
+
+    <!-- ===== THANH TỔNG (LUÔN HIỂN THỊ, BẤM ĐỂ XỔ CHI TIẾT) ===== -->
+    <div class="summary-bar flex-shrink-0" id="summaryBar" onclick="toggleInfoDetail()">
+        <div class="summary-bar-item type">
+            <span class="label" id="typeLabel">🔄 Sang tôm</span>
+            <span class="value" id="typeTotal">0.0 kg</span>
+        </div>
+        <div class="summary-bar-divider"></div>
+        <div class="summary-bar-item total">
+            <span class="label" id="grandTotalLabel">📊 TỔNG</span>
+            <span class="value" id="grandTotal">0.0 kg</span>
+        </div>
+        <span class="summary-bar-arrow" id="summaryBarArrow">▼</span>
+    </div>
+
+    <!-- ===== CHI TIẾT: AO / HÌNH THỨC / GHI CHÚ (THU GỌN ĐƯỢC) ===== -->
+    <div class="detail-panel collapsed" id="infoDetailPanel">
+        <div class="info-row">
+            <div class="field">
+                <label>🏷️ Ao</label>
+                <input type="text" id="aoNumber" value="1">
+            </div>
+            <div class="field">
+                <label>📋 Hình thức</label>
+                <select id="harvestType">
+                    <option value="sang">🔄 Sang tôm</option>
+                    <option value="tia">✂️ Thu tỉa</option>
+                    <option value="het">📦 Thu hết</option>
+                </select>
+            </div>
+            <div class="field" style="flex:2;">
+                <label>📝 Ghi chú</label>
+                <input type="text" id="noteInput" placeholder="Ghi chú...">
+            </div>
+        </div>
+        <div class="cumulative-toggle" onclick="toggleCumulative()" style="width:fit-content;">
+            <input type="checkbox" id="cumulativeToggle">
+            <label for="cumulativeToggle">Lũy kế</label>
+            <span class="badge" id="cumulativeBadge">OFF</span>
+        </div>
+    </div>
+
+    <!-- ===== THANH ĐIỀU HƯỚNG TAB ===== -->
+    <div class="tab-nav-bar flex-shrink-0" id="tabNavBar">
+        <button class="tab-nav-arrow" onclick="prevTab()" id="tabPrevBtn">‹</button>
+        <div class="tab-scroll" id="tabList"></div>
+        <button class="tab-nav-arrow" onclick="nextTab()" id="tabNextBtn">›</button>
+        <button class="tab-picker-btn" onclick="openTabPicker()">
+            📑<span id="tabPositionLabel">1/1</span>
+        </button>
+    </div>
+
+    <!-- ===== THANH CÀI ĐẶT TAB / TỰ ĐỘNG ===== -->
+    <div class="tab-settings-bar flex-shrink-0" id="tabSettingsBar">
+        <button class="tab-btn primary" onclick="addTab()">➕</button>
+        <button class="tab-btn danger" onclick="removeTab()">➖</button>
+        <div class="tab-setting">
+            <label>Cột/tab</label>
+            <input type="number" id="colsPerTabInput" value="5" min="1" max="10" onchange="updateColsPerTab()">
+        </div>
+        <!-- ===== AUTO DECIMAL TOGGLE ===== -->
+        <div class="auto-decimal-toggle">
+            <input type="checkbox" id="autoDecimalToggle" onchange="toggleAutoDecimal()">
+            <label for="autoDecimalToggle">🔢 Tự động</label>
+            <span class="badge off" id="autoDecimalBadge">OFF</span>
+            <div class="decimal-places-setting">
+                <input type="number" id="decimalPlacesInput" value="1" min="1" max="3" onchange="updateDecimalPlaces()" title="Số chữ số thập phân, vd: 2 → gõ 1275 ra 12.75">
+                <span>lẻ</span>
+            </div>
+        </div>
+        <div class="spacer"></div>
+    </div>
+
+    <!-- ===== BẢNG ===== -->
+    <div class="table-wrapper flex-grow-1" id="tableWrapper">
+        <table class="data-table" id="dataTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot id="tableFoot"></tfoot>
+        </table>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar-row flex-shrink-0">
+        <button class="toggle-numpad-btn" id="toggleNumpadBtn" onclick="toggleNumpad()">⌨️</button>
+        <div class="spacer"></div>
+        <button class="btn btn-success" onclick="addRow()" style="flex:0.6;">➕ Dòng</button>
+        <button class="btn btn-danger" onclick="removeRow()" style="flex:0.6;">➖ Dòng</button>
+        <button class="btn btn-primary" onclick="addColumn()" style="flex:0.6;">➕ Cột</button>
+        <button class="btn btn-danger" onclick="removeColumn()" style="flex:0.6;">➖ Cột</button>
+    </div>
+    <div class="btn-row flex-shrink-0">
+        <button class="btn btn-info" onclick="showSaveOptions()">💾 Lưu</button>
+        <button class="btn btn-success" onclick="exportExcelReal()">📊 CSV</button>
+        <button class="btn btn-secondary" onclick="exportJSON()">🗂️ Sao lưu</button>
+        <button class="btn btn-danger" onclick="resetAll()">🔄 Reset</button>
+    </div>
+
+    <!-- ===== BÀN PHÍM SỐ ===== -->
+    <div class="numpad-wrapper expanded" id="numpadWrapper">
+        <div class="numpad">
+            <button class="key num" onclick="appendNumber('1')">1</button>
+            <button class="key num" onclick="appendNumber('2')">2</button>
+            <button class="key num" onclick="appendNumber('3')">3</button>
+            <button class="key delete" onclick="deleteLast()">⌫</button>
+
+            <button class="key num" onclick="appendNumber('4')">4</button>
+            <button class="key num" onclick="appendNumber('5')">5</button>
+            <button class="key num" onclick="appendNumber('6')">6</button>
+            <button class="key done" onclick="enterValue()">✅</button>
+
+            <button class="key num" onclick="appendNumber('7')">7</button>
+            <button class="key num" onclick="appendNumber('8')">8</button>
+            <button class="key num" onclick="appendNumber('9')">9</button>
+            <button class="key operator" onclick="appendNumber('.')">.</button>
+
+            <button class="key num span2" onclick="appendNumber('0')">0</button>
+            <button class="key operator" onclick="appendNumber(',')">,</button>
+            <button class="key operator" onclick="clearCell()">✕</button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="*/*" style="display:none" onchange="importData(event)">
+</div>
+
+<!-- ===== SAVE OPTION OVERLAY ===== -->
+<div class="save-option-overlay" id="saveOptionOverlay" onclick="closeSaveOptions(event)">
+    <div class="save-option-panel" onclick="event.stopPropagation()">
+        <h3>💾 Lưu dữ liệu</h3>
+        <p class="sub">Đã có dữ liệu cho ao <span id="saveAoName">1</span> hôm nay. Bạn muốn:</p>
+        <div class="btn-group">
+            <button class="btn btn-overwrite" onclick="saveCurrentData('overwrite')">🔄 Ghi đè</button>
+            <button class="btn btn-new" onclick="saveCurrentData('new')">➕ Lưu mới</button>
+            <button class="btn btn-cancel" onclick="closeSaveOptions()">✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MENU OVERLAY ===== -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenuOutside(event)">
+    <div class="menu-panel" onclick="event.stopPropagation()">
+        <div class="menu-header">
+            <h2>📂 Lịch sử ao</h2>
+            <button class="close-btn" onclick="toggleMenu()">✕</button>
+        </div>
+        <input class="menu-search" id="menuSearch" placeholder="🔍 Tìm ao..." oninput="renderMenu()">
+        <div class="ao-selected-sum" id="aoSelectedSum" style="display:none;">
+            <span id="aoSelectedSumText">🧮 Đã chọn 0 ao — Tổng: 0.0 kg</span>
+            <button onclick="clearAoSelection()">✕ Bỏ chọn</button>
+        </div>
+        <div class="menu-list" id="menuList"></div>
+        <div class="menu-footer">
+            <button class="btn btn-secondary" onclick="exportAllData()">📦 Xuất tất cả</button>
+            <button class="btn btn-danger" onclick="clearAllHistory()">🗑️ Xóa hết</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== GHIM RA MÀN HÌNH CHÍNH ===== -->
+<div class="menu-overlay" id="pinOverlay">
+    <div class="menu-panel" onclick="event.stopPropagation()" style="max-height:70vh;">
+        <div class="menu-header">
+            <h2>📌 Ghim ra màn hình chính</h2>
+            <button class="close-btn" onclick="closePinTip()">✕</button>
+        </div>
+        <div style="font-size:13.5px;color:#475569;line-height:1.7;padding:4px 2px;overflow-y:auto;max-height:52vh;">
+            <p style="margin-bottom:10px;">Dữ liệu ao của bạn lưu trong <b>đúng bản trình duyệt đang mở</b>. Nếu mỗi lần bạn tải lại file hoặc mở bằng app khác, dữ liệu sẽ không thấy. Ghim ra màn hình chính để luôn mở lại đúng 1 bản này:</p>
+            <p id="pinTipIOS" style="display:none;">
+                <b>📱 iPhone (Safari):</b><br>
+                1. Bấm nút Chia sẻ <b>⬆️</b> ở thanh dưới<br>
+                2. Chọn <b>"Thêm vào MH chính"</b> (Add to Home Screen)<br>
+                3. Bấm <b>Thêm</b> — từ nay mở icon 🦐 này thay vì mở lại file
+            </p>
+            <p id="pinTipAndroid" style="display:none;">
+                <b>🤖 Android (Chrome):</b><br>
+                1. Bấm nút <b>⋮</b> (3 chấm) góc trên bên phải trình duyệt<br>
+                2. Chọn <b>"Thêm vào Màn hình chính"</b><br>
+                3. Bấm <b>Thêm</b> — từ nay mở icon 🦐 này thay vì mở lại file
+            </p>
+            <p id="pinTipOther" style="display:none;">
+                Mở menu trình duyệt (thường là biểu tượng ⋮ hoặc chia sẻ ⬆️) và tìm mục <b>"Thêm vào màn hình chính"</b>.
+            </p>
+            <div style="margin-top:14px;padding:12px 14px;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px dashed #d97706;border-radius:12px;text-align:center;">
+                <p style="font-size:14px;font-weight:700;color:#92400e;line-height:1.6;margin-bottom:8px;">☕ NẾU BÀ CON THẤY APP NÀY HỮU ÍCH CHO CÔNG VIỆC THU TÔM THÌ CÓ THỂ ỦNG HỘ TÁC GIẢ BẰNG LY CAFE</p>
+                <p style="font-size:16px;font-weight:800;color:#78350f;letter-spacing:0.5px;margin-bottom:2px;">19026616444018</p>
+                <p style="font-size:13px;font-weight:700;color:#92400e;">TECHCOMBANK - CHỦ TK: BUI THI TIN</p>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="closePinTip()">Đã hiểu</button>
+    </div>
+</div>
+
+<!-- ===== CHỌN NHANH TAB ===== -->
+<div class="menu-overlay" id="tabPickerOverlay" onclick="closeTabPickerOutside(event)">
+    <div class="menu-panel" onclick="event.stopPropagation()" style="max-height:65vh;">
+        <div class="menu-header">
+            <h2>📑 Chọn tab</h2>
+            <button class="close-btn" onclick="closeTabPicker()">✕</button>
+        </div>
+        <div class="tab-picker-grid" id="tabPickerGrid"></div>
+    </div>
+</div>
+
+<script>
+// ===== GHIM MÀN HÌNH CHÍNH =====
+function detectPlatformForPinTip() {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    document.getElementById('pinTipIOS').style.display = isIOS ? 'block' : 'none';
+    document.getElementById('pinTipAndroid').style.display = isAndroid ? 'block' : 'none';
+    document.getElementById('pinTipOther').style.display = (!isIOS && !isAndroid) ? 'block' : 'none';
+}
+function isStandaloneApp() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function showPinTip() {
+    detectPlatformForPinTip();
+    document.getElementById('pinOverlay').classList.add('show');
+}
+function closePinTip() {
+    document.getElementById('pinOverlay').classList.remove('show');
+    try { localStorage.setItem('cantom_seen_pin_tip', '1'); } catch(e) {}
+    if (typeof loadLatestRecord === 'function') {
+        loadLatestRecord();
+        updateTabs();
+        updateTypeLabel();
+    }
+}
+window.addEventListener('load', function() {
+    if (isStandaloneApp()) return;
+    setTimeout(showPinTip, 800);
+});
+</script>
+
+<script>
+// ===== ĐĂNG KÝ SERVICE WORKER (để app dùng được khi offline) =====
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/socan-tom/sw.js')
+            .then(reg => console.log('✅ Service Worker đã đăng ký:', reg.scope))
+            .catch(err => console.log('❌ Đăng ký Service Worker thất bại:', err));
+    });
+}
+</script>
+
+<script>
+// ===== STATE =====
+let gridData = [];
+let cols = 5;
+let rows = 5;
+let selectedIndex = 0;
+let allRecords = [];
+let currentRecordId = null;
+let colsPerTab = 5;
+let currentTab = 0;
+let totalTabs = 1;
+let selectedRecordIds = new Set();
+let recordTotalsCache = {};
+let isCumulative = false;
+let isAutoDecimal = false;
+let decimalPlaces = 1;
+
+// ===== KHỞI TẠO =====
+document.addEventListener('DOMContentLoaded', function() {
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    document.getElementById('aoNumber').addEventListener('change', function() {
+        autoSave();
+        updateHarvestTotals();
+    });
+    document.getElementById('aoNumber').addEventListener('input', updateHarvestTotals);
+    document.getElementById('harvestType').addEventListener('change', function() {
+        updateTypeLabel();
+        autoSave();
+        updateHarvestTotals();
+    });
+    document.getElementById('noteInput').addEventListener('change', autoSave);
+
+    try {
+        const savedCumulative = localStorage.getItem('cantom_cumulative');
+        if (savedCumulative !== null) {
+            isCumulative = savedCumulative === 'true';
+            document.getElementById('cumulativeToggle').checked = isCumulative;
+            updateCumulativeBadge();
+        }
+    } catch(e) {}
+
+    loadAutoDecimalState();
+    loadDecimalPlaces();
+
+    const saved = localStorage.getItem('colsPerTab');
+    if (saved) {
+        colsPerTab = parseInt(saved);
+        document.getElementById('colsPerTabInput').value = colsPerTab;
+    } else {
+        document.getElementById('colsPerTabInput').value = 5;
+    }
+
+    loadToggleStates();
+    loadNumpadState();
+    loadAllRecords();
+    
+    if (allRecords.length === 0) {
+        createSampleData();
+    }
+    
+    if (isStandaloneApp()) {
+        // App đã ghim ra màn hình chính -> không hiện trang ghim/donate, vào thẳng số liệu ao gần nhất
+        loadLatestRecord();
+    } else {
+        // Để bảng trống tạm thời; số liệu ao gần nhất sẽ nạp sau khi người dùng đóng trang Ghim/donate
+        gridData = [];
+        for (let i = 0; i < cols * rows; i++) gridData.push(null);
+        renderTable();
+        calculateAll();
+    }
+    updateTabs();
+    updateTypeLabel();
+});
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('currentTime').textContent =
+        now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+}
+
+function updateTypeLabel() {
+    const type = document.getElementById('harvestType').value;
+    const labels = {
+        'sang': '🔄 Sang tôm',
+        'tia': '✂️ Thu tỉa',
+        'het': '📦 Thu hết'
+    };
+    document.getElementById('typeLabel').textContent = labels[type] || '🔄 Sang tôm';
+}
+
+// ===== AUTO DECIMAL FUNCTIONS =====
+function toggleAutoDecimal() {
+    const checkbox = document.getElementById('autoDecimalToggle');
+    isAutoDecimal = checkbox.checked;
+    const badge = document.getElementById('autoDecimalBadge');
+    badge.textContent = isAutoDecimal ? 'ON' : 'OFF';
+    badge.className = 'badge ' + (isAutoDecimal ? 'on' : 'off');
+    localStorage.setItem('cantom_auto_decimal', isAutoDecimal ? 'true' : 'false');
+}
+
+function loadAutoDecimalState() {
+    try {
+        const savedAuto = localStorage.getItem('cantom_auto_decimal');
+        if (savedAuto !== null) {
+            isAutoDecimal = savedAuto === 'true';
+            document.getElementById('autoDecimalToggle').checked = isAutoDecimal;
+            const badge = document.getElementById('autoDecimalBadge');
+            badge.textContent = isAutoDecimal ? 'ON' : 'OFF';
+            badge.className = 'badge ' + (isAutoDecimal ? 'on' : 'off');
+        }
+    } catch(e) {}
+}
+
+// Số chữ số thập phân cố định (vd: 2 → gõ 1 2 7 5 ra 12.75)
+function updateDecimalPlaces() {
+    let val = parseInt(document.getElementById('decimalPlacesInput').value) || 1;
+    if (val < 1) val = 1;
+    if (val > 3) val = 3;
+    decimalPlaces = val;
+    document.getElementById('decimalPlacesInput').value = val;
+    try { localStorage.setItem('cantom_decimal_places', decimalPlaces); } catch(e) {}
+}
+
+function loadDecimalPlaces() {
+    try {
+        const saved = localStorage.getItem('cantom_decimal_places');
+        if (saved) {
+            decimalPlaces = parseInt(saved) || 1;
+            document.getElementById('decimalPlacesInput').value = decimalPlaces;
+        }
+    } catch(e) {}
+}
+
+// ===== CUMULATIVE TOGGLE =====
+function toggleCumulative() {
+    const checkbox = document.getElementById('cumulativeToggle');
+    isCumulative = checkbox.checked;
+    localStorage.setItem('cantom_cumulative', isCumulative);
+    updateCumulativeBadge();
+    updateHarvestTotals();
+}
+
+function updateCumulativeBadge() {
+    const badge = document.getElementById('cumulativeBadge');
+    badge.textContent = isCumulative ? 'ON' : 'OFF';
+    badge.style.background = isCumulative ? '#22c55e' : '#64748b';
+}
+
+// ===== TOGGLE: THÔNG TIN CHI TIẾT (AO/HÌNH THỨC/GHI CHÚ) =====
+// Bấm xổ thông tin -> tự đẩy bàn phím xuống. Bấm đẩy bàn phím lên -> thông tin tự thu gọn.
+function toggleInfoDetail() {
+    const panel = document.getElementById('infoDetailPanel');
+    if (panel.classList.contains('collapsed')) {
+        expandInfoDetail();
+    } else {
+        collapseInfoDetail();
+    }
+}
+
+function expandInfoDetail() {
+    const panel = document.getElementById('infoDetailPanel');
+    const arrow = document.getElementById('summaryBarArrow');
+    panel.classList.remove('collapsed');
+    panel.classList.add('expanded');
+    if (arrow) arrow.classList.add('open');
+    localStorage.setItem('toggle_infoDetailPanel', 'expanded');
+    collapseNumpad();
+}
+
+function collapseInfoDetail() {
+    const panel = document.getElementById('infoDetailPanel');
+    const arrow = document.getElementById('summaryBarArrow');
+    panel.classList.add('collapsed');
+    panel.classList.remove('expanded');
+    if (arrow) arrow.classList.remove('open');
+    localStorage.setItem('toggle_infoDetailPanel', 'collapsed');
+}
+
+function loadToggleStates() {
+    const state = localStorage.getItem('toggle_infoDetailPanel');
+    if (state === 'expanded') {
+        expandInfoDetail();
+    } else {
+        collapseInfoDetail();
+    }
+}
+
+// ===== TOGGLE BÀN PHÍM SỐ =====
+// Bấm đẩy bàn phím lên (hiện) -> tự thu gọn thông tin chi tiết để đỡ chật màn hình.
+function toggleNumpad() {
+    const wrapper = document.getElementById('numpadWrapper');
+    if (wrapper.classList.contains('collapsed')) {
+        expandNumpad();
+    } else {
+        collapseNumpad();
+    }
+}
+
+function expandNumpad() {
+    const wrapper = document.getElementById('numpadWrapper');
+    const btn = document.getElementById('toggleNumpadBtn');
+    wrapper.classList.remove('collapsed');
+    btn.classList.remove('hide');
+    localStorage.setItem('numpad_collapsed', 'false');
+    collapseInfoDetail();
+}
+
+function collapseNumpad() {
+    const wrapper = document.getElementById('numpadWrapper');
+    const btn = document.getElementById('toggleNumpadBtn');
+    wrapper.classList.add('collapsed');
+    btn.classList.add('hide');
+    localStorage.setItem('numpad_collapsed', 'true');
+}
+
+function loadNumpadState() {
+    const collapsed = localStorage.getItem('numpad_collapsed') === 'true';
+    if (collapsed) {
+        collapseNumpad();
+    } else {
+        expandNumpad();
+    }
+}
+
+// ===== TAB MANAGEMENT =====
+function updateColsPerTab() {
+    const input = document.getElementById('colsPerTabInput');
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1) val = 1;
+    if (val > 10) val = 10;
+    input.value = val;
+    colsPerTab = val;
+    localStorage.setItem('colsPerTab', colsPerTab);
+    updateTabs();
+}
+
+function updateTabs() {
+    totalTabs = Math.ceil(cols / colsPerTab);
+    if (totalTabs === 0) totalTabs = 1;
+    if (currentTab >= totalTabs) currentTab = totalTabs - 1;
+    if (currentTab < 0) currentTab = 0;
+    
+    const tabList = document.getElementById('tabList');
+    let html = '';
+    for (let i = 0; i < totalTabs; i++) {
+        const startCol = i * colsPerTab + 1;
+        const endCol = Math.min((i + 1) * colsPerTab, cols);
+        html += `<button class="tab ${i === currentTab ? 'active' : ''}" data-tab-index="${i}" onclick="switchTab(${i})">C${startCol}-C${endCol}</button>`;
+    }
+    tabList.innerHTML = html;
+
+    // Tự cuộn tab đang chọn vào giữa khung nhìn (dễ thấy trên điện thoại)
+    const activeBtn = tabList.querySelector('.tab.active');
+    if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    // Cập nhật nhãn vị trí + bật/tắt nút mũi tên
+    const posLabel = document.getElementById('tabPositionLabel');
+    if (posLabel) posLabel.textContent = `${currentTab + 1}/${totalTabs}`;
+    const prevBtn = document.getElementById('tabPrevBtn');
+    const nextBtn = document.getElementById('tabNextBtn');
+    if (prevBtn) prevBtn.disabled = (currentTab <= 0);
+    if (nextBtn) nextBtn.disabled = (currentTab >= totalTabs - 1);
+
+    renderTable();
+}
+
+function switchTab(index) {
+    currentTab = index;
+    updateTabs();
+}
+
+// Chuyển tab bằng nút mũi tên (dễ bấm liên tiếp, không cần cuộn ngang)
+function prevTab() {
+    if (currentTab > 0) switchTab(currentTab - 1);
+}
+function nextTab() {
+    if (currentTab < totalTabs - 1) switchTab(currentTab + 1);
+}
+
+// ===== CHỌN NHANH TAB (dạng lưới, tiện khi có nhiều tab) =====
+function openTabPicker() {
+    const grid = document.getElementById('tabPickerGrid');
+    let html = '';
+    for (let i = 0; i < totalTabs; i++) {
+        const startCol = i * colsPerTab + 1;
+        const endCol = Math.min((i + 1) * colsPerTab, cols);
+        html += `<button class="${i === currentTab ? 'active' : ''}" onclick="pickTab(${i})">C${startCol}-C${endCol}</button>`;
+    }
+    grid.innerHTML = html;
+    document.getElementById('tabPickerOverlay').classList.add('show');
+}
+function pickTab(index) {
+    switchTab(index);
+    closeTabPicker();
+}
+function closeTabPicker() {
+    document.getElementById('tabPickerOverlay').classList.remove('show');
+}
+function closeTabPickerOutside(e) {
+    if (e.target === e.currentTarget) closeTabPicker();
+}
+
+function addTab() {
+    // Luôn tạo tab mới đủ số cột theo cấu hình (mặc định 5 cột)
+    addColumnsBulk(colsPerTab);
+    // Đảm bảo bảng có tối thiểu 5 dòng
+    if (rows < 5) addRowsBulk(5 - rows);
+    totalTabs = Math.ceil(cols / colsPerTab);
+    currentTab = totalTabs - 1;
+    updateTabs();
+    calculateAll();
+    autoSave();
+}
+
+function removeTab() {
+    if (totalTabs <= 1) {
+        alert('⚠️ Phải giữ ít nhất 1 tab!');
+        return;
+    }
+    const colsToRemove = Math.min(cols - (currentTab * colsPerTab), colsPerTab);
+    for (let i = 0; i < colsToRemove; i++) {
+        if (cols > 2) removeColumn();
+    }
+    totalTabs = Math.ceil(cols / colsPerTab);
+    if (currentTab >= totalTabs) currentTab = totalTabs - 1;
+    updateTabs();
+}
+
+// ===== MENU =====
+function toggleMenu() {
+    const overlay = document.getElementById('menuOverlay');
+    overlay.classList.toggle('show');
+    if (overlay.classList.contains('show')) {
+        loadAllRecords();
+        renderMenu();
+        document.getElementById('menuSearch').value = '';
+    }
+}
+
+function closeMenuOutside(e) {
+    if (e.target === e.currentTarget) toggleMenu();
+}
+
+function renderMenu() {
+    const search = document.getElementById('menuSearch').value.toLowerCase().trim();
+    const list = document.getElementById('menuList');
+
+    let filtered = allRecords;
+    if (search) {
+        filtered = allRecords.filter(r =>
+            r.ao.toLowerCase().includes(search) ||
+            r.note.toLowerCase().includes(search)
+        );
+    }
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="menu-empty">📭 Chưa có dữ liệu nào<br><span style="font-size:12px;">Hãy lưu ao đầu tiên!</span></div>`;
+        return;
+    }
+
+    const groups = {};
+    filtered.forEach(r => {
+        const key = (r.ao || '').trim() || '(chưa đặt tên)';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(r);
+    });
+
+    const groupKeys = Object.keys(groups).sort((a, b) => {
+        const latestA = Math.max(...groups[a].map(r => new Date(r.date).getTime()));
+        const latestB = Math.max(...groups[b].map(r => new Date(r.date).getTime()));
+        return latestB - latestA;
+    });
+
+    let html = '';
+    recordTotalsCache = {};
+    groupKeys.forEach(ao => {
+        const records = groups[ao].slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+        let aoTotal = 0;
+        records.forEach(r => {
+            if (r.type === 'tia' || r.type === 'het') {
+                aoTotal += r.data.reduce((s, v) => s + (v || 0), 0);
+            }
+        });
+        const hasHet = records.some(r => r.type === 'het');
+
+        html += `
+            <div class="ao-group">
+                <div class="ao-group-header">
+                    <span class="ao-name">🏷️ Ao ${ao} ${hasHet ? '✅' : ''}</span>
+                    <span class="ao-group-total">Lũy kế: ${aoTotal.toFixed(1)} kg (${records.filter(r => r.type === 'tia' || r.type === 'het').length} lần)</span>
+                </div>
+        `;
+
+        records.forEach((record) => {
+            const isActive = record.id === currentRecordId;
+            const date = new Date(record.date);
+            const dateStr = date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+            const total = record.data.reduce((sum, v) => sum + (v || 0), 0);
+            const typeLabel = record.type === 'sang' ? '🔄 Sang tôm' : record.type === 'tia' ? '✂️ Thu tỉa' : '📦 Thu hết';
+            recordTotalsCache[record.id] = total;
+            const isChecked = selectedRecordIds.has(record.id);
+
+            html += `
+                <div class="menu-item ${isActive ? 'active' : ''}">
+                    <input type="checkbox" class="menu-item-check" ${isChecked ? 'checked' : ''} onchange="toggleRecordSelection('${record.id}', this.checked)">
+                    <div class="info">
+                        <div class="name">${typeLabel} • ${total.toFixed(1)} kg</div>
+                        <div class="detail">${record.note || 'Không ghi chú'}</div>
+                        <div class="detail" style="font-size:10px;color:#94a3b8;">${dateStr}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="load" onclick="loadRecord('${record.id}')">📂</button>
+                        <button class="del" onclick="deleteRecord('${record.id}')">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+    });
+    list.innerHTML = html;
+
+    // Bỏ các lựa chọn không còn tồn tại nữa (vd: bản ghi đã bị xóa)
+    Array.from(selectedRecordIds).forEach(id => {
+        if (!(id in recordTotalsCache)) selectedRecordIds.delete(id);
+    });
+    updateAoSelectedSumBar();
+}
+
+// ===== CHỌN NHIỀU DÒNG (LẦN CÂN) ĐỂ CỘNG TỔNG =====
+function toggleRecordSelection(id, checked) {
+    if (checked) selectedRecordIds.add(id);
+    else selectedRecordIds.delete(id);
+    updateAoSelectedSumBar();
+}
+
+function clearAoSelection() {
+    selectedRecordIds.clear();
+    renderMenu();
+}
+
+function updateAoSelectedSumBar() {
+    const bar = document.getElementById('aoSelectedSum');
+    const text = document.getElementById('aoSelectedSumText');
+    if (!bar || !text) return;
+    if (selectedRecordIds.size === 0) {
+        bar.style.display = 'none';
+        return;
+    }
+    let sum = 0;
+    selectedRecordIds.forEach(id => { sum += recordTotalsCache[id] || 0; });
+    bar.style.display = 'flex';
+    text.textContent = `🧮 Đã chọn ${selectedRecordIds.size} dòng — Tổng: ${sum.toFixed(1)} kg`;
+}
+
+// ===== QUẢN LÝ RECORD =====
+function loadAllRecords() {
+    try {
+        const data = localStorage.getItem('cantom_all_records');
+        allRecords = data ? JSON.parse(data) : [];
+    } catch(e) {
+        allRecords = [];
+    }
+}
+
+function saveAllRecords() {
+    try {
+        localStorage.setItem('cantom_all_records', JSON.stringify(allRecords));
+    } catch(e) {}
+}
+
+function getCurrentRecord() {
+    return {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+        ao: document.getElementById('aoNumber').value || '1',
+        type: document.getElementById('harvestType').value || 'sang',
+        note: document.getElementById('noteInput').value || '',
+        cols: cols,
+        rows: rows,
+        data: [...gridData],
+        date: new Date().toISOString()
+    };
+}
+
+// ===== SAVE OPTIONS =====
+function showSaveOptions() {
+    const aoName = document.getElementById('aoNumber').value || '1';
+    document.getElementById('saveAoName').textContent = aoName;
+    document.getElementById('saveOptionOverlay').classList.add('show');
+}
+
+function closeSaveOptions(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('saveOptionOverlay').classList.remove('show');
+}
+
+function saveCurrentData(mode) {
+    const record = getCurrentRecord();
+    const aoName = record.ao;
+    const today = new Date(record.date).toDateString();
+    
+    const existingIndex = allRecords.findIndex(r => 
+        r.ao === aoName && 
+        new Date(r.date).toDateString() === today
+    );
+
+    if (mode === 'overwrite') {
+        if (existingIndex !== -1) {
+            allRecords[existingIndex] = record;
+            currentRecordId = record.id;
+        } else {
+            allRecords.push(record);
+            currentRecordId = record.id;
+        }
+        saveAllRecords();
+        autoSave();
+        renderMenu();
+        document.getElementById('saveOptionOverlay').classList.remove('show');
+        alert('✅ Đã ghi đè dữ liệu cho ao ' + aoName + ' hôm nay!');
+    } else if (mode === 'new') {
+        const newRecord = {
+            ...record,
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
+        };
+        allRecords.push(newRecord);
+        currentRecordId = newRecord.id;
+        saveAllRecords();
+        autoSave();
+        renderMenu();
+        document.getElementById('saveOptionOverlay').classList.remove('show');
+        alert('✅ Đã lưu mới dữ liệu cho ao ' + aoName + ' hôm nay!');
+    }
+}
+
+function loadRecord(id) {
+    const record = allRecords.find(r => r.id === id);
+    if (!record) return;
+    
+    document.getElementById('aoNumber').value = record.ao;
+    document.getElementById('harvestType').value = record.type;
+    document.getElementById('noteInput').value = record.note || '';
+    cols = record.cols;
+    rows = record.rows;
+    gridData = [...record.data];
+    currentRecordId = record.id;
+    
+    while (gridData.length < cols * rows) gridData.push(null);
+    
+    totalTabs = Math.ceil(cols / colsPerTab);
+    currentTab = 0;
+    updateTabs();
+    renderTable();
+    calculateAll();
+    updateHarvestTotals();
+    updateTypeLabel();
+    autoSave();
+    toggleMenu();
+}
+
+function deleteRecord(id) {
+    if (!confirm('🗑️ Xóa dữ liệu này?')) return;
+    allRecords = allRecords.filter(r => r.id !== id);
+    if (currentRecordId === id) {
+        currentRecordId = null;
+        loadLatestRecord();
+    }
+    saveAllRecords();
+    renderMenu();
+}
+
+function loadLatestRecord() {
+    if (allRecords.length === 0) {
+        const totalCells = cols * rows;
+        gridData = [];
+        for (let i = 0; i < totalCells; i++) {
+            gridData.push(null);
+        }
+        totalTabs = Math.ceil(cols / colsPerTab);
+        currentTab = 0;
+        updateTabs();
+        renderTable();
+        calculateAll();
+        updateHarvestTotals();
+        updateTypeLabel();
+        return;
+    }
+    
+    const latest = allRecords.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
+    loadRecord(latest.id);
+}
+
+function createSampleData() {
+    const samples = [
+        { ao: '1', type: 'sang', note: 'Sang tôm đợt 1', data: [14.5, 41.4, 74.1, 23.2, 46.5, 73.1, 9.2, 13.3, 12.2, 33.3, 55.5, 44.4, 41.1, 12.2, 33.2, 21.1, 15.5, 18.7, 22.3, 25.0, 30.5] },
+        { ao: '2', type: 'tia', note: 'Thu tỉa ao 2', data: [22.3, 15.6, 33.8, 45.2, 22.5, 13.7, 41.2, 33.1, 15.4, 25.6, 42.1, 33.5, 12.8, 22.4, 35.2, 41.3, 18.5, 20.7, 28.3, 35.0, 40.5] },
+        { ao: '1', type: 'het', note: 'Thu hết ao 1', data: [12.5, 35.6, 62.3, 18.7, 33.4, 55.2, 11.2, 14.5, 13.3, 28.9, 45.6, 37.8, 38.2, 15.7, 29.1, 18.4, 22.5, 26.7, 32.3, 38.0, 42.5] },
+    ];
+    
+    samples.forEach((s, i) => {
+        const record = {
+            id: Date.now().toString(36) + (i + 1).toString(),
+            ao: s.ao,
+            type: s.type,
+            note: s.note,
+            cols: 5,
+            rows: 5,
+            data: s.data,
+            date: new Date(Date.now() - (i * 86400000)).toISOString()
+        };
+        allRecords.push(record);
+    });
+    saveAllRecords();
+}
+
+function clearAllHistory() {
+    if (!confirm('⚠️ Xóa TẤT CẢ dữ liệu lịch sử? Hành động này không thể hoàn tác!')) return;
+    allRecords = [];
+    currentRecordId = null;
+    saveAllRecords();
+    renderMenu();
+    gridData = gridData.map(() => null);
+    renderTable();
+    calculateAll();
+    updateHarvestTotals();
+    alert('🗑️ Đã xóa toàn bộ lịch sử!');
+}
+
+function exportAllData() {
+    if (allRecords.length === 0) {
+        alert('📭 Không có dữ liệu để xuất!');
+        return;
+    }
+    const blob = new Blob([JSON.stringify(allRecords, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `SoCanTom_All_Ao_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// ===== LẤY INDEX =====
+function getIndex(col, row) { return row * cols + col; }
+function getCol(index) { return index % cols; }
+function getRow(index) { return Math.floor(index / cols); }
+
+// ===== RENDER TABLE =====
+function renderTable() {
+    const thead = document.getElementById('tableHead');
+    const tbody = document.getElementById('tableBody');
+    const tfoot = document.getElementById('tableFoot');
+
+    const startCol = currentTab * colsPerTab;
+    const endCol = Math.min(startCol + colsPerTab, cols);
+
+    let headerHtml = '<tr><th style="width:30px;min-width:24px;">#</th>';
+    for (let c = startCol; c < endCol; c++) {
+        headerHtml += `<th>C${c+1}</th>`;
+    }
+    headerHtml += '</tr>';
+    thead.innerHTML = headerHtml;
+
+    let bodyHtml = '';
+    for (let r = 0; r < rows; r++) {
+        bodyHtml += '<tr>';
+        bodyHtml += `<td class="row-number">${r+1}</td>`;
+        for (let c = startCol; c < endCol; c++) {
+            const idx = getIndex(c, r);
+            const val = gridData[idx];
+            const isActive = idx === selectedIndex;
+            const isDone = val !== null && val !== undefined && val !== '';
+            const cellClass = (isActive ? 'active-cell' : '') + (isDone ? ' done-cell' : '');
+            bodyHtml += `<td class="${cellClass}">`;
+            bodyHtml += `<input type="text" class="cell-input" data-index="${idx}" value="${val !== null && val !== undefined ? val : ''}" readonly inputmode="none">`;
+            bodyHtml += `</td>`;
+        }
+        bodyHtml += '</tr>';
+    }
+    tbody.innerHTML = bodyHtml;
+
+    let footHtml = '<tr class="total-row"><td>📊</td>';
+    for (let c = startCol; c < endCol; c++) {
+        let sum = 0;
+        for (let r = 0; r < rows; r++) {
+            const idx = getIndex(c, r);
+            const val = gridData[idx];
+            if (val && !isNaN(val)) sum += val;
+        }
+        footHtml += `<td><input type="text" value="${sum.toFixed(1)}" readonly></td>`;
+    }
+    footHtml += '</tr>';
+    tfoot.innerHTML = footHtml;
+
+    document.querySelectorAll('.cell-input').forEach(inp => {
+        inp.addEventListener('click', function(e) {
+            e.preventDefault();
+            selectedIndex = parseInt(this.dataset.index);
+            updateActiveCell();
+            this.focus();
+        });
+        inp.addEventListener('focus', function() {
+            selectedIndex = parseInt(this.dataset.index);
+            updateActiveCell();
+            this.select();
+        });
+    });
+
+    setTimeout(() => focusCell(selectedIndex), 50);
+}
+
+function updateActiveCell() {
+    document.querySelectorAll('.cell-input').forEach(inp => {
+        const idx = parseInt(inp.dataset.index);
+        const cell = inp.closest('td');
+        if (cell) cell.classList.toggle('active-cell', idx === selectedIndex);
+    });
+}
+
+function focusCell(index) {
+    const input = document.querySelector(`.cell-input[data-index="${index}"]`);
+    if (input) { input.focus(); input.select(); }
+}
+
+function calculateAll() {
+    updateHarvestTotals();
+    renderTable();
+}
+
+function updateHarvestTotals() {
+    let total = 0;
+    gridData.forEach(val => {
+        if (val && !isNaN(val) && val > 0) total += val;
+    });
+    document.getElementById('typeTotal').textContent = total.toFixed(1) + ' kg';
+
+    const aoName = (document.getElementById('aoNumber').value || '').trim();
+    let cumulative = 0;
+    let priorCount = 0;
+
+    if (isCumulative) {
+        allRecords.forEach(r => {
+            if ((r.ao || '').trim() === aoName && r.id !== currentRecordId) {
+                if (r.type === 'tia' || r.type === 'het') {
+                    cumulative += (r.data || []).reduce((s, v) => s + (v && !isNaN(v) ? v : 0), 0);
+                    priorCount++;
+                }
+            }
+        });
+        const currentType = document.getElementById('harvestType').value;
+        if (currentType === 'tia' || currentType === 'het') {
+            cumulative += total;
+            priorCount++;
+        }
+        document.getElementById('grandTotal').textContent = cumulative.toFixed(1) + ' kg';
+        const grandLabelEl = document.getElementById('grandTotalLabel');
+        if (grandLabelEl) {
+            grandLabelEl.textContent = priorCount > 0 ? `📊 LŨY KẾ (${priorCount} lần)` : '📊 TỔNG';
+        }
+    } else {
+        document.getElementById('grandTotal').textContent = total.toFixed(1) + ' kg';
+        document.getElementById('grandTotalLabel').textContent = '📊 TỔNG';
+    }
+}
+
+// ===== NHẬP LIỆU =====
+function enterValue() {
+    const currentCol = getCol(selectedIndex);
+    const currentRow = getRow(selectedIndex);
+    if (currentRow === rows - 1) {
+        const nextCol = currentCol + 1;
+        if (nextCol < cols) selectedIndex = getIndex(nextCol, 0);
+        else { addColumn(); selectedIndex = getIndex(cols - 1, 0); }
+    } else {
+        selectedIndex = getIndex(currentCol, currentRow + 1);
+    }
+    renderTable();
+    focusCell(selectedIndex);
+    autoSave();
+}
+
+// ===== NUMPAD - CHẾ ĐỘ TỰ ĐỘNG THÊM DẤU THẬP PHÂN =====
+// Format chuỗi chữ số thành số có N chữ số lẻ cố định ở cuối (vd decimalPlaces=2: "1275" -> "12.75")
+function formatAutoDigits(digits) {
+    if (digits.length === 0) return '';
+    if (digits.length <= decimalPlaces) {
+        return '0.' + digits.padStart(decimalPlaces, '0');
+    }
+    const intPart = digits.substring(0, digits.length - decimalPlaces);
+    const decPart = digits.substring(digits.length - decimalPlaces);
+    return intPart + '.' + decPart;
+}
+
+function appendNumber(val) {
+    const input = document.querySelector(`.cell-input[data-index="${selectedIndex}"]`);
+    if (!input) return;
+    let current = input.value || '';
+    
+    // Nếu đang ở chế độ tự động thêm dấu thập phân
+    if (isAutoDecimal) {
+        // Nếu là dấu . hoặc , thì bỏ qua (không cho nhập thủ công)
+        if (val === '.' || val === ',') return;
+        
+        // Lấy tất cả chữ số (bỏ dấu .)
+        let digits = current.replace(/\./g, '');
+        
+        // Bỏ số 0 ở đầu (số 0 này là do lần format trước tự thêm vào, không phải số người dùng gõ)
+        digits = digits.replace(/^0+/, '');
+        
+        // Ghép số mới rồi format lại theo số lẻ cố định (decimalPlaces)
+        digits = digits + val;
+        input.value = formatAutoDigits(digits);
+        updateDataFromInput(input);
+        return;
+    }
+    
+    // Chế độ bình thường (cho phép nhập dấu . và ,)
+    if ((val === '.' || val === ',') && (current.includes('.') || current.includes(','))) return;
+    
+    if (current === '0' && val !== '.' && val !== ',') {
+        input.value = val;
+    } else {
+        input.value = current + val;
+    }
+    updateDataFromInput(input);
+}
+
+function deleteLast() {
+    const input = document.querySelector(`.cell-input[data-index="${selectedIndex}"]`);
+    if (!input) return;
+    let current = input.value || '';
+    
+    // Nếu đang ở chế độ tự động
+    if (isAutoDecimal) {
+        // Lấy tất cả chữ số (bỏ dấu .), bỏ số 0 dư ở đầu, rồi xóa số cuối
+        let digits = current.replace(/\./g, '');
+        digits = digits.replace(/^0+/, '');
+        digits = digits.slice(0, -1);
+        input.value = digits.length === 0 ? '' : formatAutoDigits(digits);
+        updateDataFromInput(input);
+        return;
+    }
+    
+    // Chế độ bình thường
+    input.value = current.slice(0, -1);
+    updateDataFromInput(input);
+}
+
+function clearCell() {
+    const input = document.querySelector(`.cell-input[data-index="${selectedIndex}"]`);
+    if (!input) return;
+    input.value = '';
+    updateDataFromInput(input);
+}
+
+function updateDataFromInput(input) {
+    const idx = parseInt(input.dataset.index);
+    let rawValue = input.value.replace(/,/g, '.');
+    const val = parseFloat(rawValue);
+    gridData[idx] = isNaN(val) ? null : val;
+    const cell = input.closest('td');
+    if (cell) cell.classList.toggle('done-cell', gridData[idx] !== null && gridData[idx] !== undefined && gridData[idx] !== '');
+    updateHarvestTotals();
+    updateColumnFooters();
+    autoSave();
+}
+
+function updateColumnFooters() {
+    const startCol = currentTab * colsPerTab;
+    const endCol = Math.min(startCol + colsPerTab, cols);
+    const footInputs = document.querySelectorAll('#tableFoot input');
+    let i = 0;
+    for (let c = startCol; c < endCol; c++) {
+        let sum = 0;
+        for (let r = 0; r < rows; r++) {
+            const idx = getIndex(c, r);
+            const v = gridData[idx];
+            if (v && !isNaN(v)) sum += v;
+        }
+        if (footInputs[i]) footInputs[i].value = sum.toFixed(1);
+        i++;
+    }
+}
+
+// ===== THÊM / XÓA =====
+// Thêm nhiều cột một lúc, không render giữa chừng (dùng cho addTab)
+function addColumnsBulk(n) {
+    for (let k = 0; k < n; k++) {
+        cols++;
+        const newGrid = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const oldIdx = r * (cols - 1) + c;
+                if (c < cols - 1 && oldIdx < gridData.length) {
+                    newGrid.push(gridData[oldIdx]);
+                } else {
+                    newGrid.push(null);
+                }
+            }
+        }
+        gridData = newGrid;
+    }
+}
+
+// Thêm nhiều dòng một lúc, không render giữa chừng (dùng cho addTab)
+function addRowsBulk(n) {
+    for (let k = 0; k < n; k++) {
+        rows++;
+        const newGrid = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const oldIdx = r * cols + c;
+                if (r < rows - 1 && oldIdx < gridData.length) {
+                    newGrid.push(gridData[oldIdx]);
+                } else {
+                    newGrid.push(null);
+                }
+            }
+        }
+        gridData = newGrid;
+    }
+}
+
+function addColumn() {
+    addColumnsBulk(1);
+    totalTabs = Math.ceil(cols / colsPerTab);
+    currentTab = totalTabs - 1;
+    updateTabs();
+    calculateAll();
+    autoSave();
+}
+
+function removeColumn() {
+    if (cols <= 2) { alert('⚠️ Phải giữ ít nhất 2 cột!'); return; }
+    cols--;
+    const newGrid = [];
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const oldIdx = r * (cols + 1) + c;
+            newGrid.push(gridData[oldIdx] || null);
+        }
+    }
+    gridData = newGrid;
+    if (selectedIndex >= gridData.length) selectedIndex = gridData.length - 1;
+    totalTabs = Math.ceil(cols / colsPerTab);
+    if (currentTab >= totalTabs) currentTab = totalTabs - 1;
+    updateTabs();
+    calculateAll();
+    autoSave();
+}
+
+function addRow() {
+    addRowsBulk(1);
+    renderTable();
+    calculateAll();
+    autoSave();
+}
+
+function removeRow() {
+    if (rows <= 2) { alert('⚠️ Phải giữ ít nhất 2 dòng!'); return; }
+    rows--;
+    const newGrid = [];
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const oldIdx = r * cols + c;
+            if (oldIdx < gridData.length) {
+                newGrid.push(gridData[oldIdx]);
+            } else {
+                newGrid.push(null);
+            }
+        }
+    }
+    gridData = newGrid;
+    if (selectedIndex >= gridData.length) selectedIndex = gridData.length - 1;
+    renderTable();
+    calculateAll();
+    autoSave();
+}
+
+function resetAll() {
+    if (!confirm('🔄 Xóa tất cả dữ liệu trên bảng?')) return;
+    gridData = gridData.map(() => null);
+    selectedIndex = 0;
+    renderTable();
+    focusCell(0);
+    calculateAll();
+    autoSave();
+}
+
+// ===== LƯU TRỮ =====
+function getSaveData() {
+    return {
+        ao: document.getElementById('aoNumber').value,
+        type: document.getElementById('harvestType').value,
+        note: document.getElementById('noteInput').value,
+        cols: cols, rows: rows, data: gridData,
+        date: new Date().toISOString()
+    };
+}
+
+function autoSave() {
+    try {
+        localStorage.setItem('cantom_current_data', JSON.stringify(getSaveData()));
+    } catch(e) {}
+}
+
+function loadSavedData() {
+    try {
+        const saved = localStorage.getItem('cantom_current_data');
+        if (!saved) return false;
+        const data = JSON.parse(saved);
+        document.getElementById('aoNumber').value = data.ao || '1';
+        document.getElementById('harvestType').value = data.type || 'sang';
+        document.getElementById('noteInput').value = data.note || '';
+        cols = data.cols || 5; 
+        rows = data.rows || 5;
+        gridData = data.data || [];
+        while (gridData.length < cols * rows) gridData.push(null);
+        totalTabs = Math.ceil(cols / colsPerTab);
+        currentTab = 0;
+        updateTabs();
+        renderTable();
+        calculateAll();
+        updateTypeLabel();
+        return true;
+    } catch(e) { return false; }
+}
+
+// ===== IMPORT / EXPORT =====
+function loadData() {
+    document.getElementById('fileInput').click();
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (Array.isArray(data)) {
+                allRecords = data;
+                saveAllRecords();
+                loadLatestRecord();
+                renderMenu();
+                alert('✅ Import thành công ' + data.length + ' ao!');
+            } else {
+                document.getElementById('aoNumber').value = data.ao || '1';
+                document.getElementById('harvestType').value = data.type || 'sang';
+                document.getElementById('noteInput').value = data.note || '';
+                cols = data.cols || 5; 
+                rows = data.rows || 5;
+                gridData = data.data || [];
+                while (gridData.length < cols * rows) gridData.push(null);
+                totalTabs = Math.ceil(cols / colsPerTab);
+                currentTab = 0;
+                updateTabs();
+                renderTable();
+                calculateAll();
+                updateTypeLabel();
+                autoSave();
+                alert('✅ Import thành công!');
+            }
+        } catch(err) {
+            alert('❌ Lỗi đọc file: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ===== SAO LƯU =====
+function exportJSON() {
+    const data = getSaveData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `SoCanTom_Ao${data.ao}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert('🗂️ Đã tải file sao lưu.\n\nFile này dùng để phục hồi lại đúng dữ liệu (qua nút "Nhập dữ liệu") khi mất dữ liệu hoặc chuyển sang máy khác — không dùng để xem số liệu. Muốn xem/gửi số liệu thì dùng nút "📊 CSV".');
+}
+
+// ===== XUẤT CSV =====
+async function exportExcelReal() {
+    const ao = document.getElementById('aoNumber').value || '1';
+    const type = document.getElementById('harvestType').value;
+    const typeLabel = type === 'sang' ? 'Sang tom' : type === 'tia' ? 'Thu tia' : 'Thu het';
+    const note = document.getElementById('noteInput').value || '';
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    const rowsCsv = [];
+    rowsCsv.push([`SO CAN TOM - Ao ${ao}`].join(';'));
+    rowsCsv.push([`Hinh thuc: ${typeLabel}`, `Ghi chu: ${note || 'Khong co'}`, `Ngay: ${dateStr}`].join(';'));
+    rowsCsv.push('');
+    const header = ['#'];
+    for (let c = 0; c < cols; c++) header.push(`C${c + 1}`);
+    header.push('TONG');
+    rowsCsv.push(header.join(';'));
+
+    let grandTotal = 0;
+    for (let r = 0; r < rows; r++) {
+        let rowSum = 0;
+        const line = [String(r + 1)];
+        for (let c = 0; c < cols; c++) {
+            const idx = getIndex(c, r);
+            const val = gridData[idx] || 0;
+            rowSum += val;
+            line.push(val.toFixed(1).replace('.', ','));
+        }
+        grandTotal += rowSum;
+        line.push(rowSum.toFixed(1).replace('.', ','));
+        rowsCsv.push(line.join(';'));
+    }
+
+    const totalLine = ['TONG'];
+    for (let c = 0; c < cols; c++) {
+        let sum = 0;
+        for (let r = 0; r < rows; r++) {
+            const idx = getIndex(c, r);
+            sum += gridData[idx] || 0;
+        }
+        totalLine.push(sum.toFixed(1).replace('.', ','));
+    }
+    totalLine.push(grandTotal.toFixed(1).replace('.', ','));
+    rowsCsv.push(totalLine.join(';'));
+
+    const csvContent = '\uFEFF' + rowsCsv.join('\r\n');
+    const filename = `SoCanTom_Ao${ao}_${dateStr}.csv`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+    try {
+        const file = new File([blob], filename, { type: 'text/csv' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: filename });
+            return;
+        }
+    } catch (e) {}
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert('📄 Đã tải file CSV "' + filename + '"\n\nMở bằng: Excel, Google Sheets, WPS Office, hoặc bất kỳ app xem văn bản nào (vào mục Tải xuống / Downloads trên máy để tìm file).');
+}
+
+// ===== PHÍM TẮT =====
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); enterValue(); }
+});
+</script>
+</body>
+</html>
