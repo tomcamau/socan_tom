@@ -1155,7 +1155,12 @@ window.addEventListener('load', function() {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/socan-tom/sw.js')
-            .then(reg => console.log('✅ Service Worker đã đăng ký:', reg.scope))
+            .then(reg => {
+                console.log('✅ Service Worker đã đăng ký:', reg.scope);
+                // Chủ động kiểm tra bản Service Worker mới mỗi lần mở app,
+                // để không bị kẹt lại bản cache cũ khi đã sửa/deploy code mới.
+                reg.update();
+            })
             .catch(err => console.log('❌ Đăng ký Service Worker thất bại:', err));
     });
 }
