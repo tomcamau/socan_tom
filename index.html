@@ -1080,7 +1080,7 @@
             <button class="close-btn" onclick="closePinTip()">✕</button>
         </div>
         <div style="font-size:13.5px;color:#475569;line-height:1.7;padding:4px 2px;overflow-y:auto;max-height:52vh;">
-            <p style="margin-bottom:10px;">Dữ liệu ao của bạn lưu trong <b>đúng bản trình duyệt đang mở</b>. Nếu mỗi lần bạn tải lại file hoặc mở bằng app khác, dữ liệu sẽ không thấy. Ghim ra màn hình chính để luôn mở lại đúng 1 bản này:</p>
+            <p id="pinIntro" style="margin-bottom:10px;">Dữ liệu ao của bạn lưu trong <b>đúng bản trình duyệt đang mở</b>. Nếu mỗi lần bạn tải lại file hoặc mở bằng app khác, dữ liệu sẽ không thấy. Ghim ra màn hình chính để luôn mở lại đúng 1 bản này:</p>
             <p id="pinTipIOS" style="display:none;">
                 <b>📱 iPhone (Safari):</b><br>
                 1. Bấm nút Chia sẻ <b>⬆️</b> ở thanh dưới<br>
@@ -1131,20 +1131,21 @@ function isStandaloneApp() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 function showPinTip() {
-    detectPlatformForPinTip();
+    const standalone = isStandaloneApp();
+    document.getElementById('pinIntro').style.display = standalone ? 'none' : 'block';
+    if (standalone) {
+        document.getElementById('pinTipIOS').style.display = 'none';
+        document.getElementById('pinTipAndroid').style.display = 'none';
+        document.getElementById('pinTipOther').style.display = 'none';
+    } else {
+        detectPlatformForPinTip();
+    }
     document.getElementById('pinOverlay').classList.add('show');
 }
 function closePinTip() {
     document.getElementById('pinOverlay').classList.remove('show');
-    try { localStorage.setItem('cantom_seen_pin_tip', '1'); } catch(e) {}
-    if (typeof loadLatestRecord === 'function') {
-        loadLatestRecord();
-        updateTabs();
-        updateTypeLabel();
-    }
 }
 window.addEventListener('load', function() {
-    if (isStandaloneApp()) return;
     setTimeout(showPinTip, 800);
 });
 </script>
@@ -1217,21 +1218,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadToggleStates();
     loadNumpadState();
     loadAllRecords();
-    
-    if (allRecords.length === 0) {
-        createSampleData();
-    }
-    
-    if (isStandaloneApp()) {
-        // App đã ghim ra màn hình chính -> không hiện trang ghim/donate, vào thẳng số liệu ao gần nhất
-        loadLatestRecord();
-    } else {
-        // Để bảng trống tạm thời; số liệu ao gần nhất sẽ nạp sau khi người dùng đóng trang Ghim/donate
-        gridData = [];
-        for (let i = 0; i < cols * rows; i++) gridData.push(null);
-        renderTable();
-        calculateAll();
-    }
+
+    // Luôn mở app với bảng SẠCH, không tự nạp lại số liệu ao cũ / mẫu.
+    // Người dùng có thể xem lại số liệu ao cũ qua nút 📋 (Lịch sử ao) khi cần.
+    gridData = [];
+    for (let i = 0; i < cols * rows; i++) gridData.push(null);
+    renderTable();
+    calculateAll();
     updateTabs();
     updateTypeLabel();
 });
@@ -1753,29 +1746,6 @@ function loadLatestRecord() {
     
     const latest = allRecords.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
     loadRecord(latest.id);
-}
-
-function createSampleData() {
-    const samples = [
-        { ao: '1', type: 'sang', note: 'Sang tôm đợt 1', data: [14.5, 41.4, 74.1, 23.2, 46.5, 73.1, 9.2, 13.3, 12.2, 33.3, 55.5, 44.4, 41.1, 12.2, 33.2, 21.1, 15.5, 18.7, 22.3, 25.0, 30.5] },
-        { ao: '2', type: 'tia', note: 'Thu tỉa ao 2', data: [22.3, 15.6, 33.8, 45.2, 22.5, 13.7, 41.2, 33.1, 15.4, 25.6, 42.1, 33.5, 12.8, 22.4, 35.2, 41.3, 18.5, 20.7, 28.3, 35.0, 40.5] },
-        { ao: '1', type: 'het', note: 'Thu hết ao 1', data: [12.5, 35.6, 62.3, 18.7, 33.4, 55.2, 11.2, 14.5, 13.3, 28.9, 45.6, 37.8, 38.2, 15.7, 29.1, 18.4, 22.5, 26.7, 32.3, 38.0, 42.5] },
-    ];
-    
-    samples.forEach((s, i) => {
-        const record = {
-            id: Date.now().toString(36) + (i + 1).toString(),
-            ao: s.ao,
-            type: s.type,
-            note: s.note,
-            cols: 5,
-            rows: 5,
-            data: s.data,
-            date: new Date(Date.now() - (i * 86400000)).toISOString()
-        };
-        allRecords.push(record);
-    });
-    saveAllRecords();
 }
 
 function clearAllHistory() {
